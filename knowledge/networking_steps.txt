@@ -1,0 +1,3 @@
+Confirm upstream host resolves (DNS) and is reachable (ping/tcp).
+Increase client timeout to >= 30s for heavy ops; enable retries with jitter.
+Check recent deploys/Firewall/Proxy rules; capture request ID and retry once.

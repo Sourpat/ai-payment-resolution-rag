@@ -1,0 +1,3 @@
+docs/payments/gateway-checks.md
+docs/payments/tokenization.md
+runbooks/payments/common-failures.md

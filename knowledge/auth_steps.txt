@@ -1,0 +1,3 @@
+Check Authorization header and Bearer token format.
+Validate token exp/nbf/aud claims; sync server clock if skewed.
+Ensure refresh token flow working; rotate keys if needed.

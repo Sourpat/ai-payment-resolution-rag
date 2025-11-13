@@ -1,0 +1,27 @@
+{
+  "Payments": {
+    "match_any": ["PAYMENT", "CARD"],
+    "severity": "High",
+    "signals": ["payment_module", "cc_validation", "gateway_response"]
+  },
+  "Auth": {
+    "match_any": ["AUTH", "UNAUTHORIZED", "401"],
+    "severity": "Medium",
+    "signals": ["token_expired", "bad_credentials"]
+  },
+  "Networking": {
+    "match_any": ["TIMEOUT", "TIMED OUT"],
+    "severity": "Medium",
+    "signals": ["upstream_timeout", "retry_needed"]
+  },
+  "Routing": {
+    "match_any": ["NOT FOUND", "404"],
+    "severity": "Low",
+    "signals": ["missing_endpoint", "bad_url"]
+  },
+  "General": {
+    "match_any": [],
+    "severity": "Low",
+    "signals": ["generic_checklist"]
+  }
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "doc_id": "autopay",
+    "source": "src\\rag\\kb\\autopay.md",
+    "chunk_id": "autopay#0",
+    "text": "﻿# AutoPay Policies\n## Eligibility Requirements\n- Account age >= 90 days\n- No NSF in last 6 months\n- BOA vs Credit Card rules differ; CC accounts may have additional checks.\n\n## Common Issues\n### \"Not Eligible for AutoPay\"\n**Causes**: recent NSF, new account, CC-only restrictions.\n**Resolution Steps**:\n1) Check eligibility service / policy flags\n2) Communicate steps to qualify\n3) Offer manual payment / ACH as alternatives"
+  },
+  {
+    "doc_id": "insufficient_funds",
+    "source": "src\\rag\\kb\\insufficient_funds.md",
+    "chunk_id": "insufficient_funds#0",
+    "text": "﻿# Insufficient Funds Playbook\n**Category**: PAYMENT_METHOD_ERROR\n\n**Customer Message Hints**:\n- Bank declined due to insufficient funds; try a smaller amount or alternate method.\n\n**Agent Steps**:\n1) Confirm balance with the customer\n2) Suggest smaller amount or alternative method (ACH/Wire)\n3) Retry once after confirmation"
+  },
+  {
+    "doc_id": "outage",
+    "source": "src\\rag\\kb\\outage.md",
+    "chunk_id": "outage#0",
+    "text": "﻿# Gateway Timeout / Outage Procedures\n**Category**: NETWORK_OR_TIMEOUT / SYSTEM_OUTAGE\n\n**Agent Steps**:\n1) Check provider status page\n2) Backoff and retry after 60s (max 3)\n3) If 503 persists, open ticket and fail fast"
+  }
+]

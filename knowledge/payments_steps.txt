@@ -1,0 +1,5 @@
+Verify account/location allows this payment method.
+Confirm tokenization success (token present, not expired).
+Check gateway merchant config & credentials for this env.
+Validate amount/currency and AVS/CVV policy alignment.
+Retry once on upstream 5xx; otherwise show user-safe error.
