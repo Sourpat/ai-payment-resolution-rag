@@ -12,6 +12,8 @@ from src.core.classifier import RulesClassifier
 from src.rag.retriever import RAG
 from src.rag.responder import Responder
 
+from src.api.logger import log_event
+
 app = FastAPI(title="Dev Support RAG API", version="0.1.0")
 
 # CORS
@@ -78,6 +80,7 @@ def health():
 
 @app.get("/support/ping")
 def ping():
+    log_event("Ping received")
     return {
         "ok": True,
         "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
@@ -88,6 +91,8 @@ def ping():
 
 @app.post("/support/diagnose", response_model=DiagnoseResponse)
 def diagnose(req: DiagnoseRequest):
+    log_event(f"/diagnose → {req.error_code}")
+
     if not req.error_code.strip():
         raise HTTPException(status_code=400, detail="error_code is required")
 
@@ -120,6 +125,8 @@ def diagnose(req: DiagnoseRequest):
 
 @app.post("/support/diagnose/with-summary", response_model=DiagnoseResponse)
 def diagnose_with_summary(req: DiagnoseRequest):
+    log_event(f"/diagnose/with-summary → {req.error_code}")
+
     if not req.error_code.strip():
         raise HTTPException(status_code=400, detail="error_code is required")
 
@@ -147,7 +154,6 @@ def diagnose_with_summary(req: DiagnoseRequest):
         context=req.context or {},
     )
 
-    # Build summary
     query = f"[{category}/{severity}] {req.error_code}: {req.message or 'No message'}"
     snippets = [
         "Steps:\n- " + "\n- ".join(steps),

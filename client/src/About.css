@@ -1,0 +1,122 @@
+.about-wrap {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Hero */
+.about-hero {
+  text-align: center;
+  margin-bottom: 3rem;
+  animation: fadeIn 0.6s ease-out;
+}
+
+.about-hero h1 {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.about-hero p {
+  color: var(--text-muted);
+  font-size: 1.05rem;
+}
+
+/* Section Titles */
+.about-features h2,
+.about-architecture h2,
+.about-tech h2 {
+  font-size: 1.6rem;
+  margin-bottom: 1rem;
+}
+
+/* Feature Cards Grid */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 1.1rem;
+  margin-bottom: 3rem;
+}
+
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1.2rem;
+  border-radius: 12px;
+  text-align: center;
+  transition: 0.25s ease;
+}
+
+.feature-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 6px 18px var(--shadow);
+}
+
+.feature-icon {
+  font-size: 2rem;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+/* Architecture Box */
+.architecture-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  padding: 1.2rem;
+  border-radius: 10px;
+  overflow-x: auto;
+  margin-bottom: 3rem;
+}
+
+.architecture-box pre {
+  font-size: 0.85rem;
+  line-height: 1.4rem;
+  white-space: pre-wrap;
+}
+
+/* Tech Grid */
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+  margin-bottom: 3rem;
+}
+
+.tech-item {
+  padding: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-align: center;
+  font-size: 0.95rem;
+  transition: 0.25s ease;
+}
+
+.tech-item:hover {
+  transform: translateY(-4px);
+}
+
+/* Footer Card */
+.about-footer-card {
+  margin: 2rem auto;
+  padding: 1.6rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: center;
+}
+
+.about-footer-card a {
+  color: var(--primary);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.about-footer-card a:hover {
+  color: var(--primary-hover);
+}
+
+/* Fade-in Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
