@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: ai-payment-resolution-api
+    env: python
+    region: oregon
+    branch: main
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "uvicorn src.api.main:app --host 0.0.0.0 --port $PORT"
+    plan: free
