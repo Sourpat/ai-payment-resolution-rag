@@ -1,31 +1,32 @@
+import { Link, useLocation } from "react-router-dom";
 import ThemeToggle from "./ThemeToggle.jsx";
 
 export default function Navbar() {
+  const location = useLocation();
+  const apiStatus = typeof window !== "undefined" ? window.__API_STATUS__ : null;
+
   return (
     <header className="navbar-wrapper">
       <nav className="navbar">
-
         {/* Left Section */}
-        <div className="nav-left" onClick={() => (window.location.href = "/")}>
+        <Link to="/" className="nav-left">
           <span className="nav-logo">⚡</span>
           <span className="nav-title">AI Payment Resolution Assistant</span>
-        </div>
+        </Link>
 
         {/* Right Section */}
         <div className="nav-right">
-
-          <a href="/about" className="nav-link">
+          <Link
+            to="/about"
+            className={`nav-link ${location.pathname === "/about" ? "active" : ""}`}
+          >
             About
-          </a>
+          </Link>
 
           <ThemeToggle />
 
-          <div className="api-status">
-            <span
-              className={`status-dot ${
-                window.__API_STATUS__ ? "online" : "offline"
-              }`}
-            ></span>
+          <div className="api-status" title={`API ${apiStatus ? "Online" : "Offline"}`}>
+            <span className={`status-dot ${apiStatus ? "online" : "offline"}`} />
           </div>
 
           <a
@@ -33,6 +34,7 @@ export default function Navbar() {
             target="_blank"
             rel="noopener noreferrer"
             className="nav-link github-link"
+            aria-label="View source on GitHub"
           >
             <svg
               width="18"
