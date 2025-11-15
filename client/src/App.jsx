@@ -85,9 +85,9 @@ export default function App() {
 
   return (
     <>
-      <div className="wrap">
-        <Navbar />
+      <Navbar />
 
+      <main className="wrap">
         <div className="page-container">
           <header className="top">
             <h1>🧠 Dev Support Assistant</h1>
@@ -253,7 +253,7 @@ export default function App() {
             </span>
           </footer>
         </div>
-      </div>
+      </main>
 
       <Shortcut onTrigger={handleDiagnose} />
     </>
