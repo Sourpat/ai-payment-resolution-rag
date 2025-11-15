@@ -1,10 +1,15 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import "./App.css";
 
 import Navbar from "./Navbar.jsx";
 
-const API_BASE = import.meta.env.VITE_API_BASE || "http://127.0.0.1:8000";
+const envBase = import.meta.env.VITE_API_BASE;
+const API_BASE = envBase && envBase.trim()
+  ? envBase.trim()
+  : import.meta.env.DEV
+    ? "http://127.0.0.1:8000"
+    : "/api";
 
 function Badge({ children, tone = "gray" }) {
   return <span className={`badge badge-${tone}`}>{children}</span>;
@@ -34,24 +39,25 @@ export default function App() {
   const client = useMemo(() => axios.create({ baseURL: API_BASE }), []);
 
   useEffect(() => {
-  (async () => {
-    try {
-      const res = await client.get("/support/ping");
-      setPing(res.data);
+    (async () => {
+      try {
+        const res = await client.get("/support/ping");
+        setPing(res.data);
 
-      // Expose API status to Navbar
-      window.__API_STATUS__ = res.data?.ok ? true : false;
-    } catch (e) {
-      setPing({ ok: false });
+        // Expose API status to Navbar
+        window.__API_STATUS__ = res.data?.ok ? true : false;
+      } catch (error) {
+        console.error("Ping failed", error);
+        setPing({ ok: false });
 
-      // API is offline
-      window.__API_STATUS__ = false;
-    }
-  })();
-}, [client]);
+        // API is offline
+        window.__API_STATUS__ = false;
+      }
+    })();
+  }, [client]);
 
 
-  const handleDiagnose = async () => {
+  const handleDiagnose = useCallback(async () => {
     setLoading(true);
     setErr("");
     setResult(null);
@@ -72,7 +78,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [client, errorCode, message, trace]);
 
   const copy = async (text) => {
     try {
