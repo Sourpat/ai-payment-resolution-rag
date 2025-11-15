@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
     return localStorage.getItem("theme") || "auto";
   });
 
-  useEffect(() => {
-    applyTheme(theme);
-  }, [theme]);
-
-  function applyTheme(mode) {
+  const applyTheme = useCallback((mode) => {
     const root = document.documentElement;
 
     if (mode === "light") {
@@ -21,7 +17,11 @@ export default function ThemeToggle() {
     }
 
     localStorage.setItem("theme", mode);
-  }
+  }, []);
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [applyTheme, theme]);
 
   return (
     <div className="theme-toggle">
