@@ -3,6 +3,7 @@ import axios from "axios";
 import "./App.css";
 
 import Navbar from "./Navbar.jsx";
+import { findSampleCase, sampleTestCases } from "./data/sampleTestCases.js";
 
 const API_BASE = import.meta.env.VITE_API_BASE;
 
@@ -43,6 +44,8 @@ export default function App() {
   const [ping, setPing] = useState(null);
   const [result, setResult] = useState(null);
   const [err, setErr] = useState("");
+  const [selectedSample, setSelectedSample] = useState(sampleTestCases[0]?.id || "");
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const client = useMemo(
     () =>
@@ -50,7 +53,7 @@ export default function App() {
         baseURL: API_BASE,
         timeout: 15000,
       }),
-    [API_BASE]
+    []
   );
 
   useEffect(() => {
@@ -111,6 +114,17 @@ export default function App() {
     }
   };
 
+  const applySampleCase = useCallback(
+    (id) => {
+      const selected = findSampleCase(id);
+      if (!selected) return;
+      setErrorCode(selected.error_code);
+      setMessage(selected.message);
+      setTrace(selected.trace || "");
+    },
+    []
+  );
+
   const statusBadges = [
     <Badge key="api" tone={ping?.ok ? "green" : "red"}>
       API {ping?.ok ? "Online" : "Offline"}
@@ -142,19 +156,51 @@ export default function App() {
         <div className="page-container">
           <header className="top">
             <div>
-              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
-                Live payments triage
-              </p>
-              <h1>AI Payment Resolution Assistant</h1>
-              <p style={{ color: "var(--text-muted)", maxWidth: "640px", marginTop: "0.5rem" }}>
+              <p className="eyebrow">Live payments triage</p>
+              <div className="title-row">
+                <h1>AI Payment Resolution Assistant</h1>
+                <button className="text-link" type="button" onClick={() => setInfoOpen(true)}>
+                  What is this?
+                </button>
+              </div>
+              <p className="lede">
                 Diagnose card, ACH, and PSP issues with a blend of deterministic rules and
-                RAG-powered AI summaries. Drop in the raw provider payloads and receive
-                categorized actions your on-call team can trust.
+                RAG-powered AI summaries. Drop in the raw provider payloads and receive categorized
+                actions your on-call team can trust.
               </p>
             </div>
 
             <div className="status">{statusBadges}</div>
           </header>
+
+          <div className="sample-test">
+            <div>
+              <p className="eyebrow">Run a sample test</p>
+              <p className="hint">
+                Auto-fill realistic payment incidents to see how the assistant responds.
+              </p>
+            </div>
+            <div className="sample-controls">
+              <select
+                value={selectedSample}
+                onChange={(e) => setSelectedSample(e.target.value)}
+                aria-label="Choose sample test case"
+              >
+                {sampleTestCases.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.title} • {t.category}
+                  </option>
+                ))}
+              </select>
+              <button
+                className="btn subtle"
+                type="button"
+                onClick={() => applySampleCase(selectedSample)}
+              >
+                Apply sample
+              </button>
+            </div>
+          </div>
 
           {err && (
             <div className="alert">
@@ -325,6 +371,59 @@ export default function App() {
       </main>
 
       <Shortcut onTrigger={handleDiagnose} />
+
+      {infoOpen && (
+        <div className="modal-backdrop" role="presentation" onClick={() => setInfoOpen(false)}>
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-title"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="modal-header">
+              <p className="eyebrow">Product overview</p>
+              <h3 id="modal-title">What this assistant does</h3>
+            </div>
+
+            <div className="modal-body">
+              <p>
+                The AI Payment Resolution Assistant blends deterministic rules with RAG retrieval to
+                triage incidents faster than traditional runbooks. It highlights the detected
+                category, severity, and the signals that matter for on-call engineers.
+              </p>
+
+              <div className="modal-grid">
+                <div>
+                  <h4>How it works</h4>
+                  <ol className="modal-steps">
+                    <li>Ingests the raw PSP payloads, error codes, and any trace IDs you have.</li>
+                    <li>Classifies the incident using curated payment rules and severity heuristics.</li>
+                    <li>Retrieves similar issues from the knowledge base to enrich context.</li>
+                    <li>Summarizes the diagnosis with suggested steps and reference links.</li>
+                  </ol>
+                </div>
+                <div>
+                  <h4>Example errors</h4>
+                  <ul className="modal-list">
+                    {sampleTestCases.slice(0, 5).map((sample) => (
+                      <li key={sample.id}>
+                        <strong>{sample.error_code}</strong> — {sample.message}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn" type="button" onClick={() => setInfoOpen(false)}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
