@@ -11,6 +11,19 @@ const API_BASE = envBase && envBase.trim()
     ? "http://127.0.0.1:8000"
     : "/api";
 
+const DEFAULT_ERROR = "PAYMENT_METHOD_ERROR";
+const DEFAULT_MESSAGE = "Card declined: AVS mismatch";
+
+function formatBaseUrl(base) {
+  if (!base) return "";
+  try {
+    const url = new URL(base);
+    return url.host;
+  } catch {
+    return base.replace(/^https?:\/\//i, "");
+  }
+}
+
 function Badge({ children, tone = "gray" }) {
   return <span className={`badge badge-${tone}`}>{children}</span>;
 }
@@ -28,8 +41,8 @@ function SectionCard({ title, children, extra }) {
 }
 
 export default function App() {
-  const [errorCode, setErrorCode] = useState("PAYMENT_METHOD_ERROR");
-  const [message, setMessage] = useState("Card declined: AVS mismatch");
+  const [errorCode, setErrorCode] = useState(DEFAULT_ERROR);
+  const [message, setMessage] = useState(DEFAULT_MESSAGE);
   const [trace, setTrace] = useState("");
   const [loading, setLoading] = useState(false);
   const [ping, setPing] = useState(null);
@@ -39,14 +52,18 @@ export default function App() {
   const client = useMemo(() => axios.create({ baseURL: API_BASE }), []);
 
   useEffect(() => {
+    let cancelled = false;
+
     (async () => {
       try {
         const res = await client.get("/support/ping");
+        if (cancelled) return;
         setPing(res.data);
 
         // Expose API status to Navbar
         window.__API_STATUS__ = res.data?.ok ? true : false;
       } catch (error) {
+        if (cancelled) return;
         console.error("Ping failed", error);
         setPing({ ok: false });
 
@@ -54,8 +71,11 @@ export default function App() {
         window.__API_STATUS__ = false;
       }
     })();
-  }, [client]);
 
+    return () => {
+      cancelled = true;
+    };
+  }, [client]);
 
   const handleDiagnose = useCallback(async () => {
     setLoading(true);
@@ -89,6 +109,29 @@ export default function App() {
     }
   };
 
+  const statusBadges = [
+    <Badge key="api" tone={ping?.ok ? "green" : "red"}>
+      API {ping?.ok ? "Online" : "Offline"}
+    </Badge>,
+    ping?.model ? (
+      <Badge key="model" tone="blue">{`Model: ${ping.model}`}</Badge>
+    ) : null,
+    ping?.rules_source ? (
+      <Badge key="rules" tone="blue">{`Rules: ${ping.rules_source}`}</Badge>
+    ) : null,
+    API_BASE ? (
+      <Badge key="base" tone="blue">{`Base: ${formatBaseUrl(API_BASE)}`}</Badge>
+    ) : null,
+  ].filter(Boolean);
+
+  const signals = Array.isArray(result?.signals) ? result.signals.filter(Boolean) : [];
+  const steps = Array.isArray(result?.suggested_steps)
+    ? result.suggested_steps.filter(Boolean)
+    : [];
+  const references = Array.isArray(result?.references)
+    ? result.references.filter(Boolean)
+    : [];
+
   return (
     <>
       <Navbar />
@@ -96,18 +139,19 @@ export default function App() {
       <main className="wrap">
         <div className="page-container">
           <header className="top">
-            <h1>🧠 Dev Support Assistant</h1>
-            <div className="status">
-              <Badge tone={ping?.ok ? "green" : "red"}>
-                API {ping?.ok ? "Online" : "Offline"}
-              </Badge>
-              <Badge>
-                {ping?.model ? `Model: ${ping.model}` : "No model set"}
-              </Badge>
-              <Badge>
-                {ping?.rules_source ? `Rules: ${ping.rules_source}` : ""}
-              </Badge>
+            <div>
+              <p style={{ fontSize: "0.9rem", color: "var(--text-muted)", marginBottom: "0.4rem" }}>
+                Live payments triage
+              </p>
+              <h1>AI Payment Resolution Assistant</h1>
+              <p style={{ color: "var(--text-muted)", maxWidth: "640px", marginTop: "0.5rem" }}>
+                Diagnose card, ACH, and PSP issues with a blend of deterministic rules and
+                RAG-powered AI summaries. Drop in the raw provider payloads and receive
+                categorized actions your on-call team can trust.
+              </p>
             </div>
+
+            <div className="status">{statusBadges}</div>
           </header>
 
           {err && (
@@ -117,7 +161,7 @@ export default function App() {
           )}
 
           <SectionCard
-            title="Input"
+            title="Incident Details"
             extra={
               <button className="btn" onClick={handleDiagnose} disabled={loading}>
                 {loading ? "Diagnosing…" : "Run Diagnosis (Ctrl+Enter)"}
@@ -155,89 +199,106 @@ export default function App() {
               </label>
             </div>
             <p className="hint">
-              Tip: Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run.
+              Tip: Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to run. Provide any PSP specific payloads
+              or trace IDs for richer RAG context.
             </p>
           </SectionCard>
 
           {result && (
             <>
               <SectionCard
-                title="Overview"
+                title="Diagnosis Overview"
                 extra={
                   <>
-                    <Badge tone="blue">{result.category}</Badge>{" "}
-                    <Badge tone={result.severity === "High" ? "red" : "yellow"}>
-                      {result.severity}
-                    </Badge>
+                    {result.category && <Badge tone="blue">{result.category}</Badge>}
+                    {result.severity && (
+                      <Badge tone={result.severity === "High" ? "red" : "green"}>
+                        Severity: {result.severity}
+                      </Badge>
+                    )}
                   </>
                 }
               >
                 <div className="kv">
                   <div>
-                    <strong>Detected Error:</strong> {result.detected_error}
+                    <strong>Detected Error:</strong> {result.detected_error || "—"}
                   </div>
-                  {Array.isArray(result.signals) && result.signals.length > 0 && (
+                  {signals.length > 0 && (
                     <div>
-                      <strong>Signals:</strong>{" "}
-                      {result.signals.join(", ")}
+                      <strong>Signals:</strong> {signals.join(", ")}
+                    </div>
+                  )}
+                  {result.rules_version && (
+                    <div>
+                      <strong>Rules Version:</strong> {result.rules_version}
                     </div>
                   )}
                 </div>
               </SectionCard>
 
-              <SectionCard
-                title="Assistant Summary"
-                extra={
-                  <button
-                    className="btn subtle"
-                    onClick={() => copy(result.assistant_summary || "")}
-                  >
-                    Copy
-                  </button>
-                }
-              >
-                <pre className="pre">{result.assistant_summary}</pre>
-              </SectionCard>
+              {result.assistant_summary && (
+                <SectionCard
+                  title="Assistant Summary"
+                  extra={
+                    <button
+                      className="btn subtle"
+                      onClick={() => copy(result.assistant_summary || "")}
+                    >
+                      Copy
+                    </button>
+                  }
+                >
+                  <pre className="pre">{result.assistant_summary}</pre>
+                </SectionCard>
+              )}
 
               <div className="columns">
                 <SectionCard
-                  title={`Suggested Steps (${result.suggested_steps?.length || 0})`}
+                  title={`Suggested Steps (${steps.length})`}
                   extra={
-                    <button
-                      className="btn subtle"
-                      onClick={() =>
-                        copy((result.suggested_steps || []).join("\n"))
-                      }
-                    >
-                      Copy
-                    </button>
+                    steps.length > 0 && (
+                      <button
+                        className="btn subtle"
+                        onClick={() => copy(steps.join("\n"))}
+                      >
+                        Copy
+                      </button>
+                    )
                   }
                 >
-                  <ol className="steps">
-                    {(result.suggested_steps || []).map((s, i) => (
-                      <li key={i}>{s}</li>
-                    ))}
-                  </ol>
+                  {steps.length > 0 ? (
+                    <ol className="steps">
+                      {steps.map((s, i) => (
+                        <li key={i}>{s}</li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p style={{ color: "var(--text-muted)" }}>No action items returned.</p>
+                  )}
                 </SectionCard>
 
                 <SectionCard
-                  title={`References (${result.references?.length || 0})`}
+                  title={`References (${references.length})`}
                   extra={
-                    <button
-                      className="btn subtle"
-                      onClick={() =>
-                        copy((result.references || []).join("\n"))
-                      }
-                    >
-                      Copy
-                    </button>
+                    references.length > 0 && (
+                      <button
+                        className="btn subtle"
+                        onClick={() => copy(references.join("\n"))}
+                      >
+                        Copy
+                      </button>
+                    )
                   }
                 >
-                  <ul className="refs">
-                    {(result.references || []).map((r, i) => (
-                      <li key={i}>{r}</li>
-                    ))}
-                  </ul>
+                  {references.length > 0 ? (
+                    <ul className="refs">
+                      {references.map((r, i) => (
+                        <li key={i}>{r}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p style={{ color: "var(--text-muted)" }}>No references provided.</p>
+                  )}
                 </SectionCard>
               </div>
 
@@ -253,7 +314,7 @@ export default function App() {
             <span>API: {API_BASE}</span>
             <span style={{ marginLeft: "auto" }}>
               Built by{" "}
-              <a href="https://github.com/Sourpat" target="_blank">
+              <a href="https://github.com/Sourpat" target="_blank" rel="noreferrer">
                 Sourabh Patil
               </a>
             </span>
@@ -269,7 +330,7 @@ export default function App() {
 function Shortcut({ onTrigger }) {
   useEffect(() => {
     const h = (e) => {
-      if (e.ctrlKey && e.key === "Enter") onTrigger();
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") onTrigger();
     };
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
