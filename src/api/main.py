@@ -7,6 +7,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
 from src.core.classifier import RulesClassifier
 from src.rag.retriever import RAG
@@ -14,17 +15,14 @@ from src.rag.responder import Responder
 
 from src.api.logger import log_event
 
+load_dotenv()
+
 app = FastAPI(title="Dev Support RAG API", version="0.1.0")
 
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-    ],
-    allow_credentials=True,
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -53,11 +51,13 @@ class DiagnoseResponse(BaseModel):
 # ---------------------------
 # SINGLETON COMPONENTS
 # ---------------------------
-RULES_PATH = Path("config/rules.json")
+ROOT_DIR = Path(__file__).resolve().parents[2]
+RULES_PATH = ROOT_DIR / "config" / "rules.json"
+KNOWLEDGE_DIR = ROOT_DIR / "knowledge"
+
 classifier = RulesClassifier(str(RULES_PATH))
 
-# FIXED — use correct case
-retriever = RAG(index_dir=str(Path("Knowledge")))
+retriever = RAG(index_dir=str(KNOWLEDGE_DIR))
 
 responder = Responder()
 
@@ -73,8 +73,9 @@ def list_categories():
         return {"categories": ["Payments", "Auth", "Networking", "Routing", "General"]}
 
 
-@app.get("/health")
+@app.get("/support/health")
 def health():
+    """Render-compatible health probe scoped to the /support API."""
     return {"status": "ok"}
 
 
@@ -85,7 +86,7 @@ def ping():
         "ok": True,
         "model": os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
         "has_openai": bool(os.getenv("OPENAI_API_KEY", "")),
-        "knowledge_dir": str(Path("Knowledge").resolve()),
+        "knowledge_dir": str(KNOWLEDGE_DIR.resolve()),
     }
 
 
