@@ -139,10 +139,10 @@ export default function About() {
               {curatedExamples.map((example) => (
                 <div className="example-card" key={example.id} role="listitem">
                   <div className="example-meta">
-                    <span className="pill pill-ghost">{example.category}</span>
-                    <strong>{example.error_code}</strong>
+                    <span className="example-badge">{example.category}</span>
+                    <strong className="example-title">{example.error_code}</strong>
                   </div>
-                  <p>{example.message}</p>
+                  <p className="example-desc">{example.message}</p>
                   <div className="trace-preview">
                     <span className="hint">Trace snippet</span>
                     <code>{example.trace.split("\n")[0]}</code>
