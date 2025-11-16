@@ -4,12 +4,7 @@ import "./App.css";
 
 import Navbar from "./Navbar.jsx";
 
-const envBase = import.meta.env.VITE_API_BASE;
-const API_BASE = envBase && envBase.trim()
-  ? envBase.trim()
-  : import.meta.env.DEV
-    ? "http://127.0.0.1:8000"
-    : "/api";
+const API_BASE = import.meta.env.VITE_API_BASE;
 
 const DEFAULT_ERROR = "PAYMENT_METHOD_ERROR";
 const DEFAULT_MESSAGE = "Card declined: AVS mismatch";
@@ -49,7 +44,14 @@ export default function App() {
   const [result, setResult] = useState(null);
   const [err, setErr] = useState("");
 
-  const client = useMemo(() => axios.create({ baseURL: API_BASE }), []);
+  const client = useMemo(
+    () =>
+      axios.create({
+        baseURL: API_BASE,
+        timeout: 15000,
+      }),
+    [API_BASE]
+  );
 
   useEffect(() => {
     let cancelled = false;
