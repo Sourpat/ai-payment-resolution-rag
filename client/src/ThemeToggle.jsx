@@ -10,9 +10,9 @@ function getSystemTheme() {
 export default function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
     if (typeof window === "undefined") {
-      return "auto";
+      return "light";
     }
-    return localStorage.getItem("theme") || "auto";
+    return localStorage.getItem("theme") || "light";
   });
 
   const mediaQueryList = useMemo(() => {
@@ -76,16 +76,6 @@ export default function ThemeToggle() {
         aria-label="Use dark theme"
       >
         🌙
-      </button>
-
-      <button
-        type="button"
-        className={theme === "auto" ? "active" : ""}
-        onClick={() => setTheme("auto")}
-        aria-pressed={theme === "auto"}
-        aria-label="Follow system theme"
-      >
-        🖥️
       </button>
     </div>
   );
