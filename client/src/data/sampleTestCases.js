@@ -1,7 +1,7 @@
 export const sampleTestCases = [
   {
     id: "payment-avs",
-    title: "Payment error – AVS mismatch",
+    title: "Payment error - AVS mismatch",
     error_code: "PAYMENT_METHOD_ERROR",
     message: "Card declined: AVS mismatch from issuing bank.",
     trace:
@@ -10,7 +10,7 @@ export const sampleTestCases = [
   },
   {
     id: "ach-hold",
-    title: "ACH return – micro-deposit mismatch",
+    title: "ACH return: micro-deposit mismatch",
     error_code: "ACH_RETURNED_PAYMENT",
     message: "ACH verification failed: micro-deposit values rejected by customer bank.",
     trace:
@@ -64,7 +64,7 @@ export const sampleTestCases = [
   },
   {
     id: "retry-soft",
-    title: "Soft decline – retry guidance",
+    title: "Soft decline: retry guidance",
     error_code: "PROCESSOR_SOFT_DECLINE",
     message: "Processor soft-decline: issuer unavailable, please retry with delay.",
     trace:

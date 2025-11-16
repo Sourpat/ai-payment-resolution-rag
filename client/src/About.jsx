@@ -23,8 +23,7 @@ export default function About() {
               </p>
               <div className="hero-pills">
                 <span className="pill">Rules + RAG pipeline</span>
-                <span className="pill">Human-friendly summaries</span>
-                <span className="pill">Day &amp; Night themes</span>
+                <span className="pill">Business-friendly summaries</span>
               </div>
             </div>
 
@@ -158,7 +157,7 @@ export default function About() {
               <p className="eyebrow">Built for production teams</p>
               <h2>Architecture that matches the UI polish</h2>
               <p className="lede">
-                Everything is wired for observability and fast iteration—front to back.
+                Everything is wired for observability and fast iteration, front to back.
               </p>
             </div>
 
