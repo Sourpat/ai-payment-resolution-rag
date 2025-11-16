@@ -1,20 +1,38 @@
 
 from pathlib import Path
+
 from src.core.classifier import RulesClassifier
 
+
+def _clf() -> RulesClassifier:
+    """Helper to load the real rules file shipped with the API."""
+
+    rules_path = Path(__file__).resolve().parents[1] / "config" / "rules.json"
+    return RulesClassifier(str(rules_path))
+
+
 def test_exact_match():
-    clf = RulesClassifier(str(Path(__file__).resolve().parents[1] / "mappings.csv"))
-    res = clf.classify(raw_code="CARD_EXPIRED", raw_message="")
-    assert res.category == "PAYMENT_METHOD_ERROR"
-    assert res.confidence == 1.0
+    category, severity, signals = _clf().classify(
+        error_code="CARD_EXPIRED", message="", trace=""
+    )
+    assert category == "Payments"
+    assert severity == "High"
+    assert "gateway_response" in signals
 
-def test_regex_match():
-    clf = RulesClassifier(str(Path(__file__).resolve().parents[1] / "mappings.csv"))
-    res = clf.classify(raw_code="", raw_message="the card looks expired")
-    assert res.category == "PAYMENT_METHOD_ERROR"
-    assert res.confidence >= 0.95
 
-def test_unknown():
-    clf = RulesClassifier(str(Path(__file__).resolve().parents[1] / "mappings.csv"))
-    res = clf.classify(raw_code="", raw_message="some totally new error")
-    assert res.category in ("UNKNOWN",)
+def test_message_match():
+    category, severity, signals = _clf().classify(
+        error_code="", message="the card looks expired", trace=""
+    )
+    assert category == "Payments"
+    assert severity == "High"
+    assert "payment_module" in signals
+
+
+def test_unknown_falls_back_to_general():
+    category, severity, signals = _clf().classify(
+        error_code="", message="some totally new error", trace=""
+    )
+    assert category == "General"
+    assert severity == "Low"
+    assert signals == ["generic_checklist"]
