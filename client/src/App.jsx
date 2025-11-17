@@ -96,6 +96,14 @@ export default function App() {
     };
   }, [client]);
 
+  const showOfflineError = useCallback(() => {
+    setApiStatus("offline");
+    setResult(null);
+    setErr("");
+    setPing({ ok: false });
+    window.__API_STATUS__ = false;
+  }, []);
+
   const handleDiagnose = useCallback(async () => {
     if (!isOnline) {
       showOfflineError();
@@ -154,14 +162,6 @@ export default function App() {
       setLoading(false);
     }
   }, [isOffline]);
-
-  const showOfflineError = useCallback(() => {
-    setApiStatus("offline");
-    setResult(null);
-    setErr("");
-    setPing({ ok: false });
-    window.__API_STATUS__ = false;
-  }, []);
 
   const statusBadges = [
     <Badge key="api" tone={isOnline ? "green" : "red"}>
