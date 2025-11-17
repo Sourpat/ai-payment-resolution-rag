@@ -384,40 +384,43 @@ export default function App() {
             <div className="modal-header">
               <p className="eyebrow">Product overview</p>
               <h3 id="modal-title">What this assistant does</h3>
+              <p className="modal-lede">
+                This assistant triages payment incidents with deterministic rules and RAG context,
+                delivering fast, trustworthy guidance for on-call teams.
+              </p>
             </div>
 
-            <div className="modal-body">
-              <p>
-                The AI Payment Resolution Assistant blends deterministic rules with RAG retrieval to
-                triage incidents faster than traditional runbooks. It highlights the detected
-                category, severity, and the signals that matter for on-call engineers.
-              </p>
+            <div className="modal-divider" aria-hidden="true" />
 
-              <div className="modal-grid">
-                <div>
-                  <h4>How it works</h4>
-                  <ol className="modal-steps">
-                    <li>Ingests the raw PSP payloads, error codes, and any trace IDs you have.</li>
-                    <li>Classifies the incident using curated payment rules and severity heuristics.</li>
-                    <li>Retrieves similar issues from the knowledge base to enrich context.</li>
-                    <li>Summarizes the diagnosis with suggested steps and reference links.</li>
-                  </ol>
-                </div>
-                <div>
-                  <h4>Example errors</h4>
-                  <ul className="modal-list">
-                    {sampleTestCases.slice(0, 5).map((sample) => (
-                      <li key={sample.id}>
-                        <strong>{sample.error_code}</strong> — {sample.message}
-                      </li>
-                    ))}
-                  </ul>
+            <div className="modal-body">
+              <div className="modal-section">
+                <h4>How it works</h4>
+                <ol className="modal-steps">
+                  <li>Collects PSP payloads, error codes, and any trace IDs you provide.</li>
+                  <li>Classifies the incident using curated payment rules and severity heuristics.</li>
+                  <li>Retrieves similar cases from the knowledge base to enrich context.</li>
+                  <li>Summarizes the diagnosis with prioritized steps and reference links.</li>
+                </ol>
+              </div>
+              <div className="modal-section modal-examples">
+                <h4>Example errors</h4>
+                <div className="modal-examples-card" role="group" aria-label="Example errors list">
+                  {sampleTestCases.slice(0, 5).map((sample) => (
+                    <div className="modal-example-item" key={sample.id}>
+                      <strong className="modal-example-code">{sample.error_code}</strong>
+                      <p className="modal-example-desc">{sample.message}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
             <div className="modal-actions">
-              <button className="btn" type="button" onClick={() => setInfoOpen(false)}>
+              <button
+                className="btn modal-close"
+                type="button"
+                onClick={() => setInfoOpen(false)}
+              >
                 Close
               </button>
             </div>
