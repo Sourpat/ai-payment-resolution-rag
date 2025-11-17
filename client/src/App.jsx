@@ -5,7 +5,8 @@ import "./App.css";
 import Navbar from "./Navbar.jsx";
 import { findSampleCase, sampleTestCases } from "./data/sampleTestCases.js";
 
-const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE =
+  import.meta.env.VITE_API_BASE || "https://dev-support-rag-api.onrender.com";
 
 const DEFAULT_ERROR = "PAYMENT_METHOD_ERROR";
 const DEFAULT_MESSAGE = "Card declined: AVS mismatch";
@@ -95,6 +96,14 @@ export default function App() {
     };
   }, [client]);
 
+  const showOfflineError = useCallback(() => {
+    setApiStatus("offline");
+    setResult(null);
+    setErr("");
+    setPing({ ok: false });
+    window.__API_STATUS__ = false;
+  }, []);
+
   const handleDiagnose = useCallback(async () => {
     if (!isOnline) {
       showOfflineError();
@@ -153,14 +162,6 @@ export default function App() {
       setLoading(false);
     }
   }, [isOffline]);
-
-  const showOfflineError = useCallback(() => {
-    setApiStatus("offline");
-    setResult(null);
-    setErr("");
-    setPing({ ok: false });
-    window.__API_STATUS__ = false;
-  }, []);
 
   const statusBadges = [
     <Badge key="api" tone={isOnline ? "green" : "red"}>
