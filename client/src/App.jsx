@@ -44,8 +44,13 @@ export default function App() {
   const [ping, setPing] = useState(null);
   const [result, setResult] = useState(null);
   const [err, setErr] = useState("");
+  const [apiStatus, setApiStatus] = useState("checking");
   const [selectedSample, setSelectedSample] = useState(sampleTestCases[0]?.id || "");
   const [infoOpen, setInfoOpen] = useState(false);
+
+  const isOnline = apiStatus === "online";
+  const isOffline = apiStatus === "offline";
+  const offlineTooltip = "API Offline — please wait for server to start.";
 
   const client = useMemo(
     () =>
@@ -58,31 +63,44 @@ export default function App() {
 
   useEffect(() => {
     let cancelled = false;
+    let timer;
 
-    (async () => {
+    const updateStatus = (status, data = null) => {
+      if (cancelled) return;
+      setApiStatus(status);
+      setPing(status === "online" ? data : { ok: false });
+      window.__API_STATUS__ = status === "online";
+    };
+
+    const checkHealth = async () => {
       try {
         const res = await client.get("/support/ping");
-        if (cancelled) return;
-        setPing(res.data);
-
-        // Expose API status to Navbar
-        window.__API_STATUS__ = res.data?.ok ? true : false;
+        const status = res.data?.ok ? "online" : "offline";
+        updateStatus(status, res.data);
       } catch (error) {
-        if (cancelled) return;
         console.error("Ping failed", error);
-        setPing({ ok: false });
-
-        // API is offline
-        window.__API_STATUS__ = false;
+        updateStatus("offline");
+      } finally {
+        if (!cancelled) {
+          timer = setTimeout(checkHealth, 10000);
+        }
       }
-    })();
+    };
+
+    checkHealth();
 
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
   }, [client]);
 
   const handleDiagnose = useCallback(async () => {
+    if (!isOnline) {
+      showOfflineError();
+      return;
+    }
+
     setLoading(true);
     setErr("");
     setResult(null);
@@ -95,15 +113,18 @@ export default function App() {
       setResult(res.data);
     } catch (e) {
       console.error(e);
-      setErr(
-        "Could not reach API. Ensure the FastAPI server is running on " +
-          API_BASE +
-          " and CORS allows this origin."
-      );
+      if (!e.response || e.response.status >= 500) {
+        showOfflineError();
+      } else {
+        setErr(
+          e.response?.data?.detail ||
+            "Diagnosis failed. Please verify the request and try again."
+        );
+      }
     } finally {
       setLoading(false);
     }
-  }, [client, errorCode, message, trace]);
+  }, [client, errorCode, isOnline, message, showOfflineError, trace]);
 
   const copy = async (text) => {
     try {
@@ -125,14 +146,30 @@ export default function App() {
     []
   );
 
+  useEffect(() => {
+    if (isOffline) {
+      setResult(null);
+      setErr("");
+      setLoading(false);
+    }
+  }, [isOffline]);
+
+  const showOfflineError = useCallback(() => {
+    setApiStatus("offline");
+    setResult(null);
+    setErr("");
+    setPing({ ok: false });
+    window.__API_STATUS__ = false;
+  }, []);
+
   const statusBadges = [
-    <Badge key="api" tone={ping?.ok ? "green" : "red"}>
-      API {ping?.ok ? "Online" : "Offline"}
+    <Badge key="api" tone={isOnline ? "green" : "red"}>
+      API {isOnline ? "Online" : "Offline"}
     </Badge>,
-    ping?.model ? (
+    isOnline && ping?.model ? (
       <Badge key="model" tone="blue">{`Model: ${ping.model}`}</Badge>
     ) : null,
-    ping?.rules_source ? (
+    isOnline && ping?.rules_source ? (
       <Badge key="rules" tone="blue">{`Rules: ${ping.rules_source}`}</Badge>
     ) : null,
     API_BASE ? (
@@ -173,7 +210,7 @@ export default function App() {
             <div className="status">{statusBadges}</div>
           </header>
 
-          <div className="sample-test">
+          <div className={`sample-test ${isOffline ? "offline-fields" : ""}`}>
             <div>
               <p className="eyebrow">Run a sample test</p>
               <p className="hint">
@@ -185,6 +222,7 @@ export default function App() {
                 value={selectedSample}
                 onChange={(e) => setSelectedSample(e.target.value)}
                 aria-label="Choose sample test case"
+                disabled={isOffline}
               >
                 {sampleTestCases.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -196,12 +234,19 @@ export default function App() {
                 className="btn subtle"
                 type="button"
                 onClick={() => applySampleCase(selectedSample)}
+                disabled={isOffline}
+                title={isOffline ? offlineTooltip : undefined}
               >
                 Apply sample
               </button>
             </div>
           </div>
 
+          {isOffline && (
+            <div className="inline-banner offline">
+              API offline — diagnosis cannot be run right now.
+            </div>
+          )}
           {err && (
             <div className="alert">
               <strong>Connection error:</strong> {err}
@@ -211,12 +256,17 @@ export default function App() {
           <SectionCard
             title="Incident Details"
             extra={
-              <button className="btn" onClick={handleDiagnose} disabled={loading}>
+              <button
+                className="btn"
+                onClick={handleDiagnose}
+                disabled={loading || !isOnline}
+                title={!isOnline ? offlineTooltip : undefined}
+              >
                 {loading ? "Diagnosing…" : "Run Diagnosis (Ctrl+Enter)"}
               </button>
             }
           >
-            <div className="grid">
+            <div className={`grid ${isOffline ? "offline-fields" : ""}`}>
               <label>
                 Error Code
                 <input
