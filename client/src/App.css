@@ -498,10 +498,12 @@ textarea:focus {
 }
 
 .btn:disabled {
-  opacity: 0.65;
+  opacity: 0.55;
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.35), rgba(79, 70, 229, 0.55));
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .btn.subtle {
@@ -509,6 +511,12 @@ textarea:focus {
   color: var(--text-muted);
   border: 1px solid var(--border);
   box-shadow: none;
+}
+
+.btn.subtle:disabled {
+  background: rgba(148, 163, 184, 0.15);
+  border-color: var(--border);
+  color: var(--text-muted);
 }
 
 .btn.subtle:hover {
@@ -533,6 +541,36 @@ textarea:focus {
   border: 1px solid rgba(239, 68, 68, 0.35);
   color: #b91c1c;
   margin-bottom: 1.4rem;
+}
+
+.inline-banner {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: rgba(251, 191, 36, 0.16);
+  color: #92400e;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.inline-banner.offline {
+  background: rgba(239, 68, 68, 0.14);
+  color: #991b1b;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.offline-fields input,
+.offline-fields textarea,
+.offline-fields select {
+  opacity: 0.85;
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.offline-fields label,
+.offline-fields .hint {
+  color: var(--text-muted);
 }
 
 /* ------------------------------------------------------- */
