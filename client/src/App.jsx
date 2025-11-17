@@ -5,7 +5,8 @@ import "./App.css";
 import Navbar from "./Navbar.jsx";
 import { findSampleCase, sampleTestCases } from "./data/sampleTestCases.js";
 
-const API_BASE = import.meta.env.VITE_API_BASE;
+const API_BASE =
+  import.meta.env.VITE_API_BASE || "https://dev-support-rag-api.onrender.com";
 
 const DEFAULT_ERROR = "PAYMENT_METHOD_ERROR";
 const DEFAULT_MESSAGE = "Card declined: AVS mismatch";
